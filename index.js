@@ -24,7 +24,7 @@ client.on('messageCreate', async (message) => {
     let conversation = [];
     conversation.push({
         role: 'system',
-        content: 'Chat GPT is a friendly chatbot.'
+        content: 'Chat GPT is a dependable chatbot.'
     });
 
     let prevMsgs = await message.channel.messages.fetch({ limit: 10});
@@ -62,7 +62,16 @@ client.on('messageCreate', async (message) => {
         message.reply('Trouble with OpenAI API. Try Again.');
     }
 
-    message.reply(response.choices[0].message.content);
+    // split >2000 message into separate responses
+    const responseMessage = response.choices[0].message.content;
+    const chunkSizeLimit = 2000;
+
+    for (let i = 0; i < responseMessage.length; i += chunkSizeLimit) {
+        const chunk = responseMessage.substring(i, i + chunkSizeLimit);
+
+        await message.reply(chunk);
+    }
+
 });
 
 client.login(process.env.TOKEN);
