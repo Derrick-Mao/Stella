@@ -8,7 +8,7 @@ const client = new Client({
 });
 
 client.on('ready', () => {
-    console.log('The bot is online.')
+    console.log('Stella bot is online.')
 });
 
 const CHANNELS = ['1205114084157169664'];
@@ -20,6 +20,12 @@ const openai = new OpenAI({
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
     if (!CHANNELS.includes(message.channelId) && !message.mentions.users.has(client.user.id)) return;
+
+    await message.channel.sendTyping();
+
+    const sendTypingInterval = setInterval(() => {
+        message.channel.sendTyping();
+    }, 5000)
 
     let conversation = [];
     conversation.push({
@@ -57,6 +63,8 @@ client.on('messageCreate', async (message) => {
         messages: conversation,
     })
     .catch((error) => console.error('OpenAI Error:\n', error));
+
+    clearInterval(sendTypingInterval);
 
     if (!response) {
         message.reply('Trouble with OpenAI API. Try Again.');
