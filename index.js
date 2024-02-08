@@ -17,22 +17,26 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_KEY
 });
 
+// bot event listener on incoming messages
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
     if (!CHANNELS.includes(message.channelId) && !message.mentions.users.has(client.user.id)) return;
 
+    // discord: bot is typing...
     await message.channel.sendTyping();
-
+    
     const sendTypingInterval = setInterval(() => {
         message.channel.sendTyping();
     }, 5000)
 
+    // conversation array
     let conversation = [];
     conversation.push({
         role: 'system',
         content: 'Chat GPT is a dependable chatbot.'
     });
 
+    // push bot and user's previous messages 
     let prevMsgs = await message.channel.messages.fetch({ limit: 10});
     prevMsgs.reverse();
 
@@ -58,6 +62,7 @@ client.on('messageCreate', async (message) => {
         })
     })
 
+    // openai response to requests
     const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: conversation,
@@ -70,7 +75,7 @@ client.on('messageCreate', async (message) => {
         message.reply('Trouble with OpenAI API. Try Again.');
     }
 
-    // split >2000 message into separate responses
+    // split >2000 message into separate responses, then reply
     const responseMessage = response.choices[0].message.content;
     const chunkSizeLimit = 2000;
 
